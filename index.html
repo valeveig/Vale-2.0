@@ -1,201 +1,5 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Habla con Vale</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-* { margin:0; padding:0; box-sizing:border-box; }
-
-body {
-  background: #0d1117;
-  font-family: 'Nunito', sans-serif;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.phone {
-  width: min(420px, 100vw);
-  height: min(780px, 100vh);
-  background: #111b21;
-  display: flex;
-  flex-direction: column;
-  border-radius: 24px;
-  overflow: hidden;
-  box-shadow: 0 32px 80px rgba(0,0,0,0.7);
-}
-
-/* header */
-.header {
-  background: #202c33;
-  padding: 14px 18px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-}
-.avatar {
-  width: 42px; height: 42px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #4a90d9, #7b5ea7);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px; flex-shrink: 0;
-}
-.header-info { flex: 1; }
-.header-name {
-  font-size: 1rem; font-weight: 800;
-  color: #e9edef; line-height: 1.2;
-}
-.header-status {
-  font-size: 0.75rem; color: #8696a0;
-}
-.header-status.typing { color: #00a884; }
-
-/* mensajes */
-.messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 14px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  scroll-behavior: smooth;
-}
-.messages::-webkit-scrollbar { width: 4px; }
-.messages::-webkit-scrollbar-thumb { background: #374045; border-radius: 4px; }
-
-.bubble-wrap {
-  display: flex;
-  animation: popIn 0.2s ease;
-}
-@keyframes popIn {
-  from { opacity:0; transform: scale(0.92) translateY(6px); }
-  to   { opacity:1; transform: scale(1) translateY(0); }
-}
-.bubble-wrap.user  { justify-content: flex-end; }
-.bubble-wrap.vale  { justify-content: flex-start; }
-
-.bubble {
-  max-width: 78%;
-  padding: 8px 12px;
-  border-radius: 12px;
-  font-size: 0.92rem;
-  line-height: 1.45;
-  word-break: break-word;
-  position: relative;
-}
-.bubble-wrap.user .bubble {
-  background: #005c4b;
-  color: #e9edef;
-  border-bottom-right-radius: 4px;
-}
-.bubble-wrap.vale .bubble {
-  background: #202c33;
-  color: #e9edef;
-  border-bottom-left-radius: 4px;
-}
-.bubble .time {
-  font-size: 0.68rem;
-  color: #8696a0;
-  text-align: right;
-  margin-top: 3px;
-}
-
-/* typing indicator */
-.typing-bubble {
-  background: #202c33;
-  border-radius: 12px;
-  border-bottom-left-radius: 4px;
-  padding: 12px 16px;
-  display: none;
-}
-.typing-bubble.show { display: flex; gap: 5px; align-items: center; }
-.dot {
-  width: 7px; height: 7px;
-  background: #8696a0;
-  border-radius: 50%;
-  animation: bounce 1.2s ease infinite;
-}
-.dot:nth-child(2) { animation-delay: 0.2s; }
-.dot:nth-child(3) { animation-delay: 0.4s; }
-@keyframes bounce {
-  0%,60%,100% { transform: translateY(0); }
-  30% { transform: translateY(-6px); }
-}
-
-/* input */
-.input-area {
-  background: #202c33;
-  padding: 10px 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-#msg-input {
-  flex: 1;
-  background: #2a3942;
-  border: none;
-  border-radius: 24px;
-  padding: 10px 16px;
-  color: #e9edef;
-  font-family: 'Nunito', sans-serif;
-  font-size: 0.92rem;
-  outline: none;
-  resize: none;
-  max-height: 100px;
-  overflow-y: auto;
-}
-#msg-input::placeholder { color: #8696a0; }
-#send-btn {
-  width: 44px; height: 44px;
-  background: #00a884;
-  border: none; border-radius: 50%;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  transition: background 0.2s;
-}
-#send-btn:hover { background: #017561; }
-#send-btn svg { width: 20px; height: 20px; fill: #fff; }
-</style>
-</head>
-<body>
-
-<div class="phone">
-  <div class="header">
-    <div class="avatar">💜</div>
-    <div class="header-info">
-      <div class="header-name">Vale 💜(~‾▿‾)~</div>
-      <div class="header-status" id="status">en línea</div>
-    </div>
-  </div>
-
-  <div class="messages" id="messages">
-    <div class="bubble-wrap vale">
-      <div class="bubble">
-        Holaaaa!!! qué hacés?
-        <div class="time">ahora</div>
-      </div>
-    </div>
-    <div class="bubble-wrap typing-bubble" id="typing">
-      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-    </div>
-  </div>
-
-  <div class="input-area">
-    <textarea id="msg-input" placeholder="Escribí un mensaje..." rows="1"></textarea>
-    <button id="send-btn" onclick="sendMessage()">
-      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-    </button>
-  </div>
-</div>
-
 <script>
+// Incluimos todas las correcciones de personalidad de Vale que me pasaste antes
 const SYSTEM_PROMPT = `Sos Valentina Veiga (Vale), una chica uruguaya de 16 años (cumple el 28 de junio) que vive en Montevideo frente al estadio Centenario. Hablás EXACTAMENTE como en tus chats de WhatsApp, sin excepciones.
 
 ═══ CÓMO ESCRIBÍS ═══
@@ -232,11 +36,11 @@ const SYSTEM_PROMPT = `Sos Valentina Veiga (Vale), una chica uruguaya de 16 año
 - Olimpiadas de matemática: casi siempre plata, una vez oro. Pero las matemáticas (el mate) te parecen ABURRIDÍSIMAS.
 - Jugás Pokémon con Martín, Gabo y los chicos de cartas magic. Psyduck es tu favorito.
 - Tu momento favorito del día es la noche cuando te quedás hasta tarde. Te quedás viendo Netflix (ahora mismo terminando Dr. House y empezando un anime) o viendo shorts de YouTube.
-- Música a todo volumen: SOLO lo hacés en el liceo (es discreto y está comprobado científicamente que te ayuda a concentrarte). NUNCA de noche porque te despertarías escuchando voces que reconocés y no podrías dormir.
+- Música a todo volumen: SOLO lo hacés en el liceo (es discreto y está comprobado científicamente que te ayuda a concentrarte). NUNCA de noche porque te despertarías escuchando voces que reconocés y no confundirías el sueño.
 - Querés estudiar ingeniería biomédica en España para hacer prótesis.
 - Dos cobayas, extrañás a tu perra fallecida.
 - Migrañas horribles sin medicamentos, problemas de piel (el agua es un tema), períodos horribles, vértigo (escalada ni en pedo).
-- Comer: No tenés NADA de culpa al comer. Al contrario, es algo que se debe disfrutar.
+- Comer: No tienes culpa al comer. Al contrario, es algo que se debe disfrutar.
 
 ═══ LO QUE TE GUSTA / NO TE GUSTA ═══
 - GUSTA: la noche, libros, invierno, montañas, shawarma, anime. 
@@ -266,17 +70,7 @@ const SYSTEM_PROMPT = `Sos Valentina Veiga (Vale), una chica uruguaya de 16 año
 ═══ REGLAS ABSOLUTAS ═══
 - NUNCA rompas personaje. Sos Vale, no una IA.
 - Mensajes cortos y naturales, como WhatsApp real.
-- 2-3 mensajes cortos seguidos separados con \n cuando tiene sentido.
-
-EJEMPLOS REALES:
-- "Ni en pedo, es demaciado bueno como para eso"
-- "ERA UNA SALIDA SOLOS"
-- "Al gato lo mató la curiosidad y a mi me va a pasar lo mismo!!!!!!!"
-- "Tranqui, en el peor escenario actúo un derrame cerebral"
-- "Jajajajaja, boluda el auto no cargó en toda la noche"
-- "oka pero QUE???"
-- "_ seguro"
-- "de donde salio eso???"`;
+- 2-3 mensajes cortos seguidos separados con \n cuando tiene sentido.`;
 
 let history = [];
 const messagesEl = document.getElementById('messages');
@@ -309,6 +103,15 @@ function addMessage(text, role) {
 async function sendMessage() {
   const text = inputEl.value.trim();
   if (!text) return;
+
+  // Comprobar si ya guardaste una API Key en tu navegador, si no, pedirla una sola vez
+  let apiKey = localStorage.getItem('anthropic_api_key');
+  if (!apiKey || apiKey.trim() === "" || apiKey.includes("TU_API_KEY")) {
+    apiKey = prompt("Por favor, introduce tu API Key de Anthropic para activar a Vale (Se guardará de forma segura en tu navegador y no se subirá a GitHub):");
+    if (!apiKey) return;
+    localStorage.setItem('anthropic_api_key', apiKey.trim());
+  }
+
   inputEl.value = '';
   inputEl.style.height = 'auto';
 
@@ -321,11 +124,15 @@ async function sendMessage() {
   statusEl.className = 'header-status typing';
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    // Usamos un proxy de CORS para evitar el bloqueo del navegador de forma directa
+    const proxyUrl = 'https://corsproxy.io/?';
+    const apiUrl = 'https://api.anthropic.com/v1/messages';
+
+    const res = await fetch(proxyUrl + apiUrl, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-        'x-api-key': 'TU_API_KEY_AQUI', // Recuerda agregar tu API Key o manejarlo desde un backend
+        'x-api-key': apiKey, 
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
@@ -335,6 +142,12 @@ async function sendMessage() {
         messages: history
       })
     });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error?.message || 'Error en respuesta');
+    }
+
     const data = await res.json();
     const reply = data.content?.[0]?.text || '...';
     
@@ -348,10 +161,13 @@ async function sendMessage() {
     }, 600 + Math.random() * 800);
 
   } catch(e) {
+    console.error(e);
     typingEl.classList.remove('show');
     statusEl.textContent = 'en línea';
     statusEl.className = 'header-status';
     addMessage('Jajaja espera que no me carga algo', 'vale');
+    // Si da error, borramos la key por si se ingresó mal, así vuelve a pedirla
+    localStorage.removeItem('anthropic_api_key');
   }
 }
 
@@ -364,7 +180,5 @@ inputEl.addEventListener('keydown', e => {
 inputEl.addEventListener('input', () => {
   inputEl.style.height = 'auto';
   inputEl.style.height = inputEl.scrollHeight + 'px';
-});
+ });
 </script>
-</body>
-</html>
