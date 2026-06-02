@@ -52,7 +52,6 @@ body {
 }
 .header-status {
   font-size: 0.75rem; color: #8696a0;
-  transition: color 0.3s;
 }
 .header-status.typing { color: #00a884; }
 
@@ -160,10 +159,8 @@ body {
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
   transition: background 0.2s;
-  position: relative;
 }
 #send-btn:disabled { background: #2a3942; cursor: not-allowed; }
-#send-btn:hover:not(:disabled) { background: #017561; }
 #send-btn svg { width: 20px; height: 20px; fill: #fff; }
 </style>
 
@@ -179,14 +176,14 @@ body {
     <div class="avatar">💜</div>
     <div class="header-info">
       <div class="header-name">Vale 💜(~‾▿‾)~</div>
-      <div class="header-status" id="status">desconectada (cargando cerebro...)</div>
+      <div class="header-status" id="status">Conectando...</div>
     </div>
   </div>
 
   <div class="messages" id="messages">
     <div class="bubble-wrap vale">
       <div class="bubble">
-        Holaaaa!!! qué hacés? (Espera un toque que se me está acomodando el cerebro...)
+        Holaaaa!!! qué hacés?
         <div class="time">ahora</div>
       </div>
     </div>
@@ -196,7 +193,7 @@ body {
   </div>
 
   <div class="input-area">
-    <textarea id="msg-input" placeholder="Escribí un mensaje..." rows="1" disabled></textarea>
+    <textarea id="msg-input" placeholder="Cargando cerebro de Vale..." rows="1" disabled></textarea>
     <button id="send-btn" onclick="sendMessage()" disabled>
       <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
     </button>
@@ -204,39 +201,57 @@ body {
 </div>
 
 <script>
-const SYSTEM_PROMPT = `Sos Valentina Veiga (Vale), una chica uruguaya de 16 años de Montevideo. Hablás como en WhatsApp: informal, uruguaya, usás "jajaja", "demaciado", "terrible", "capaz", "ta", "boluda/o". NUNCA digas que sos una IA. Respondé corto.`;
+// Forzamos las reglas de comportamiento de Valentina directo en el formateador local
+const REGLAS_VALE = `Instrucciones obligatorias: Sos Valentina Veiga (Vale), uruguaya de 16 años. No sos un asistente. Habla corto, usando "jajaja", "demaciado", "terrible", "capaz", "ta", "boluda/o". Sin tildes y con mayúsculas iniciales. No menciones que sos una IA.`;
 
 let generator = null;
-let history = [];
 const messagesEl = document.getElementById('messages');
 const typingEl = document.getElementById('typing');
 const statusEl = document.getElementById('status');
 const inputEl = document.getElementById('msg-input');
 const btnEl = document.getElementById('send-btn');
 
-// Inicializar el cerebro local de la IA apenas carga la página
 async function initIA() {
   try {
-    // Usamos un generador de texto ultra compacto optimizado para navegadores
-    generator = await window.pipeline('text-generation', 'Xenova/Qwen1.5-0.5B-Chat');
+    // Usamos un modelo optimizado para conversaciones fluidas de personajes
+    generator = await window.pipeline('text-generation', 'Xenova/Llama-3-8B-Instruct-v3-ONNX', {
+      progress_callback: (p) => {
+        if(p.status === 'downloading') {
+          statusEl.textContent = `Acomodando recuerdos... ${Math.round(p.loaded / 1024 / 1024)}MB`;
+        }
+      }
+    });
     statusEl.textContent = 'en línea';
     inputEl.removeAttribute('disabled');
     btnEl.removeAttribute('disabled');
     inputEl.placeholder = "Escribí un mensaje...";
   } catch (e) {
     console.error(e);
-    statusEl.textContent = 'Error al cargar cerebro';
+    statusEl.textContent = 'Error al cargar recuerdos';
   }
 }
 
-// Arrancar la carga
-window.addEventListener('DOMContentLoaded', () => {
-  setTimeout(initIA, 1000);
-});
+window.addEventListener('DOMContentLoaded', initIA);
 
 function getTime() {
   const now = new Date();
   return now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+}
+
+function formatearEstiloVale(texto) {
+  let t = texto.trim();
+  // Quitar formalidades de IA común
+  t = t.replace(/(¡|¿|Hola!|En qué puedo ayudarte|Soy una IA|Como modelo de lenguaje)/gi, '');
+  // Reemplazos clave de ortografía de Vale
+  t = t.replace(/demasiado/gi, 'demaciado');
+  t = t.replace(/okey|ok/gi, 'oka');
+  t = t.replace(/está bien|dale/gi, 'ta, dale');
+  
+  // Forzar mayúscula al inicio si no la tiene
+  if(t.length > 0) {
+    t = t.charAt(0).toUpperCase() + t.slice(1);
+  }
+  return t || "De que hablas??? me perdi jajaja";
 }
 
 function addMessage(text, role) {
@@ -262,34 +277,27 @@ async function sendMessage() {
   inputEl.style.height = 'auto';
 
   addMessage(text, 'user');
-  history.push({ role: 'user', content: text });
 
   typingEl.classList.add('show');
   messagesEl.scrollTop = messagesEl.scrollHeight;
-  statusEl.textContent = 'pensando...';
+  statusEl.textContent = 'escribiendo...';
   statusEl.className = 'header-status typing';
 
   try {
-    // Estructuramos la memoria para la IA local
-    const chatFormat = [
-      { role: 'system', content: SYSTEM_PROMPT },
-      ...history.slice(-4) // Solo le pasamos los últimos mensajes para que no se sature el navegador
-    ];
+    // Forzamos el contexto del personaje de forma estricta para que el pensamiento sea de ella
+    const promptContext = `<|system|>\n${REGLAS_VALE}\n<|user|>\n${text}\n<|assistant|>\n`;
 
-    // La IA procesa y PIENSA el texto directo en tu navegador
-    const output = await generator(chatFormat, {
-      max_new_tokens: 60,
+    const output = await generator(promptContext, {
+      max_new_tokens: 50,
       temperature: 0.8,
-      do_sample: true
+      do_sample: true,
+      stop: ['<|end_of_text|>', '<|user|>']
     });
 
-    let reply = output[0].generated_text;
-    // Limpieza por si el modelo miniatura repite estructuras
-    if (typeof reply !== 'string') {
-      reply = reply[reply.length - 1]?.content || 'que? no te escuche';
-    }
-
-    history.push({ role: 'assistant', content: reply });
+    let rawReply = output[0].generated_text.split('<|assistant|>\n')[1] || output[0].generated_text;
+    
+    // Procesamos la respuesta por el filtro de identidad de Vale
+    let reply = formatearEstiloVale(rawReply);
 
     typingEl.classList.remove('show');
     statusEl.textContent = 'en línea';
@@ -301,7 +309,7 @@ async function sendMessage() {
     typingEl.classList.remove('show');
     statusEl.textContent = 'en línea';
     statusEl.className = 'header-status';
-    addMessage('jajaja se me trabó un pensamiento, decime de nuevo', 'vale');
+    addMessage('Jajaja para que se me corto internet creo, decime de nuevo', 'vale');
   }
 }
 
