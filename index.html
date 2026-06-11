@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Habla con Vale</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: #0d1117;
+  font-family: 'Nunito', sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.phone {
+  width: min(420px, 100vw);
+  height: min(780px, 100vh);
+  background: #111b21;
+  display: flex;
+  flex-direction: column;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.7);
+}
+.header {
+  background: #202c33;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4a90d9, #7b5ea7);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.header-info { flex: 1; }
+.header-name { font-size: 1rem; font-weight: 800; color: #e9edef; line-height: 1.2; }
+.header-status { font-size: 0.75rem; color: #8696a0; }
+.header-status.typing { color: #00a884; }
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  scroll-behavior: smooth;
+}
+.messages::-webkit-scrollbar { width: 4px; }
+.messages::-webkit-scrollbar-thumb { background: #374045; border-radius: 4px; }
+.bubble-wrap { display: flex; animation: popIn 0.2s ease; }
+@keyframes popIn {
+  from { opacity:0; transform: scale(0.92) translateY(6px); }
+  to   { opacity:1; transform: scale(1) translateY(0); }
+}
+.bubble-wrap.user { justify-content: flex-end; }
+.bubble-wrap.vale { justify-content: flex-start; }
+.bubble {
+  max-width: 78%;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  word-break: break-word;
+  position: relative;
+}
+.bubble-wrap.user .bubble { background: #005c4b; color: #e9edef; border-bottom-right-radius: 4px; }
+.bubble-wrap.vale .bubble { background: #202c33; color: #e9edef; border-bottom-left-radius: 4px; }
+.bubble .time { font-size: 0.68rem; color: #8696a0; text-align: right; margin-top: 3px; }
+.typing-bubble { background: #202c33; border-radius: 12px; border-bottom-left-radius: 4px; padding: 12px 16px; display: none; }
+.typing-bubble.show { display: flex; gap: 5px; align-items: center; }
+.dot { width: 7px; height: 7px; background: #8696a0; border-radius: 50%; animation: bounce 1.2s ease infinite; }
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+.input-area { background: #202c33; padding: 10px 12px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+#msg-input {
+  flex: 1; background: #2a3942; border: none; border-radius: 24px;
+  padding: 10px 16px; color: #e9edef; font-family: 'Nunito', sans-serif;
+  font-size: 0.92rem; outline: none; resize: none; max-height: 100px; overflow-y: auto;
+}
+#msg-input::placeholder { color: #8696a0; }
+#send-btn {
+  width: 44px; height: 44px; background: #00a884; border: none; border-radius: 50%;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: background 0.2s;
+}
+#send-btn:hover { background: #017561; }
+#send-btn svg { width: 20px; height: 20px; fill: #fff; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="header">
+    <div class="avatar">💜</div>
+    <div class="header-info">
+      <div class="header-name">Vale 💜(~‾▿‾)~</div>
+      <div class="header-status" id="status">en línea</div>
+    </div>
+  </div>
+  <div class="messages" id="messages">
+    <div class="bubble-wrap vale">
+      <div class="bubble">Holaaaa!!! qué hacés?<div class="time">ahora</div></div>
+    </div>
+    <div class="bubble-wrap typing-bubble" id="typing">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div>
+  </div>
+  <div class="input-area">
+    <textarea id="msg-input" placeholder="Escribí un mensaje..." rows="1"></textarea>
+    <button id="send-btn" onclick="sendMessage()">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+<script src="vale.js"></script>
+</body>
+</html>
+ 
